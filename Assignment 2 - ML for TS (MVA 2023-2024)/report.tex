@@ -1,0 +1,246 @@
+\documentclass[11pt]{article}
+\usepackage{theme}
+\usepackage{shortcuts}
+% Document parameters
+% Document title
+\title{Assignment 2 (ML for TS) - MVA 2023/2024}
+\author{
+Louis-Marie Lovichi \email{lm.lovichi@me.com} \\ % student 1
+Benjamin Dahan Monsonego \email{benjamin.dahan\_monsonego@ens-paris-saclay.fr} % student 2
+}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+\paragraph{Objective.} The goal is to better understand the properties of AR and MA processes, and do signal denoising with sparse coding.
+
+\paragraph{Warning and advice.} 
+\begin{itemize}
+    \item Use code from the tutorials as well as from other sources. Do not code yourself well-known procedures (e.g. cross validation or k-means), use an existing implementation. 
+    \item The associated notebook contains some hints and several helper functions.
+    \item Be concise. Answers are not expected to be longer than a few sentences (omitting calculations).
+\end{itemize}
+
+
+
+\paragraph{Instructions.}
+\begin{itemize}
+    \item Fill in your names and emails at the top of the document.
+    \item Hand in your report (one per pair of students) by Tuesday 5\textsuperscript{th} December 11:59 PM.
+    \item Rename your report and notebook as follows:\\ \texttt{FirstnameLastname1\_FirstnameLastname1.pdf} and\\ \texttt{FirstnameLastname2\_FirstnameLastname2.ipynb}.\\
+    For instance, \texttt{LaurentOudre\_CharlesTruong.pdf}.
+    \item Upload your report (PDF file) and notebook (IPYNB file) using this link: \href{https://docs.google.com/forms/d/e/1FAIpQLSfCqMXSDU9jZJbYUMmeLCXbVeckZYNiDpPl4hRUwcJ2cBHQMw/viewform?usp=sf_link}{docs.google.com/forms/d/e/1FAIpQLSfCqMXSDU9jZJbYUMmeLCXbVeckZYNiDpPl4hRUwcJ2cBHQMw/viewform?usp=sf\_link}.
+\end{itemize}
+
+
+\section{General questions}
+
+A time series $\{y_t\}_t$ is a single realisation of a random process $\{Y_t\}_t$ defined on the probability space $(\Omega, \mathcal{F}, P)$, i.e. $y_t = Y_t(w)$ for a given $w\in\Omega$.
+In classical statistics, several independent realisations are often needed to obtain a ``good'' estimate (meaning consistent) of the parameters of the process.
+However, thanks to a stationarity hypothesis and a "short-memory" hypothesis, it is still possible to make ``good'' estimates.
+The following question illustrates this fact.
+
+\begin{exercise}
+An estimator $\hat{\theta}_n$ is consistent if it converges in probability when the number $n$ of samples grows to $\infty$ to the true value $\theta\in\mathbb{R}$ of a parameter, i.e. $\hat{\theta}_n \xrightarrow{\mathcal{D}} \theta$.
+
+\begin{itemize}
+    \item Recall the rate of convergence of the sample mean for i.i.d.\ random variables with finite variance.
+    \item Let $\{Y_t\}_{t\geq 1}$ a wide-sense stationary process such that $\sum_k |\gamma (k)| < +\infty$. 
+    Show that the sample mean $\bar{Y}_n = (Y_1+\dots+Y_n)/n$ is consistent and enjoys the same rate of convergence as the i.i.d.\ case. (Hint: bound $\mathbb{E}[(\bar{Y}_n-\mu)^2]$ with the $\gamma (k)$ and recall that convergence in $L_2$ implies convergence in probability.)
+\end{itemize}
+
+\end{exercise}
+
+\begin{solution}  % ANSWER HERE
+
+    \begin{itemize}
+        \item Puisque les variables aléatoires sont i.i.d. et de variance finie, on a bien la consistance de l'estimateur $\hat{\theta}_n$ d'après la loi faible des grands nombres. Par ailleurs, cette convergence a lieu en $O(\frac{1}{\sqrt{n}})$.
+        \item Notons alors $Z_i = Y_i - \mu$. On est alors ramenés à estimer $\mathbb{E}(\overline{Z}_n^2)$. En utilisant l'hypothèse de stationnarité et sachant qu'il existe $n-k$ couples $(i, j)$ tels que $1 \leq i < j \leq n$ et $j-i = k$, on obtient :
+        \begin{align*}
+            \mathbb{E}(\overline{Z}_n^2) & = \dfrac{1}{n^2} \mathbb{E}(\sum_{i=1}^{n} Z_i^2 + 2 \sum_{1 \leq i < j \leq n} Z_i Z_j) \\
+            & = \dfrac{1}{n} \gamma(0) + \dfrac{2}{n^2} \sum_{1 \leq i < j \leq n} \gamma(j-i) \\
+            & = \dfrac{1}{n} \gamma(0) + \dfrac{2}{n} \sum_{k=1}^{n-1} (1-\dfrac{k}{n})\gamma(k) \\
+            & \leq \dfrac{2}{n} \sum_{k=1}^{n-1} |\gamma(k)|
+        \end{align*}
+        Du fait que $\sum_k |\gamma (k)| < +\infty$, on obtient que $\mathbb{E}(\overline{Z}_n^2) = O(\dfrac{1}{n})$. Donc la moyenne empirique converge dans $L_2$ avec une convergence en $O(\dfrac{1}{\sqrt{n}})$, ce qui implique la convergence en probabilité et donc la consistance de l'estimateur comme dans le cas i.i.d. ce qui conclut la preuve.
+    \end{itemize}
+
+
+\end{solution}
+
+
+\newpage
+\section{AR and MA processes}
+
+\begin{exercise}[subtitle=Infinite order moving average MA($\infty$)]
+Let $\{Y_t\}_{t\geq 0}$ be a random process defined by
+\begin{equation}\label{eq:ma-inf}
+    Y_t = \varepsilon_t + \psi_1 \varepsilon_{t-1} + \psi_2 \varepsilon_{t-2} + \dots = \sum_{k=0}^{\infty} \psi_k\varepsilon_{t-k}
+\end{equation}
+where $(\psi_k)_{k\geq0} \subset \mathbb{R}$ ($\psi=1$) are square summable, \ie $\sum_k \psi_k^2 < \infty$ and $\{\varepsilon_t\}_t$ is a zero mean white noise of variance $\sigma_\varepsilon^2$.
+(Here, the infinite sum of random variables is the limit in $L_2$ of the partial sums.)
+\begin{itemize}
+    \item Derive $\mathbb{E}(Y_t)$ and $\mathbb{E}(Y_t Y_{t-k})$. Is this process weakly stationary?
+    \item Show that the power spectrum of $\{Y_t\}_{t}$ is $S(f) = \sigma_\varepsilon^2 |\phi(e^{-2\pi\iu f})|^2$ where $\phi(z) = \sum_j \psi_j z^j$. (Assume a sampling frequency of 1 Hz.)
+\end{itemize}
+
+The process $\{Y_t\}_{t}$ is a moving average of infinite order.
+Wold's theorem states that any weakly stationary process can be written as the sum of the deterministic process and a stochastic process which has the form~\eqref{eq:ma-inf}.
+
+\end{exercise}
+
+\begin{solution}  % ANSWER HERE
+
+\begin{itemize}
+    \item Par les théorèmes de convegence usuels étant donné $\sum_k \psi_k^2 < \infty$, on calcule $\mathbb{E}(Y_t) = \sum_{k=0}^{\infty} \psi_k^2$. De même, on a par les théorèmes de convergence usuels et sachant que $t-j = t-k-i$ si et seulement si $j = k+i$, on obtient :
+    \begin{align*}
+        Y_t Y_{t-k} & = \sum_{1 \leq i < j \leq n} \psi_i \psi_j \varepsilon_{t-j} \varepsilon_{t-k-i}\\
+        \mathbb{E}(Y_t Y_{t-k}) & = \sum_{1 \leq i < j \leq n} \psi_i \psi_j \mathbb{E}(\varepsilon_{t-j}\varepsilon_{t-k-i})\\
+    \end{align*}
+
+    D'où $\mathbb{E}(Y_t Y_{t-k}) = \sum_{i=0}^{\infty} \psi_i \psi_{k+i} \sigma_{\varepsilon}^2$ et on en conclut que le processus MA($\infty$) est bien faiblement stationnaire.
+
+    \item Étant donné que la fréquence d'échantillonnage est de $1$ Hz, on peut écrire par le théorème de Fubini et avec le changement de variable $u = k + j$ :
+    \begin{align*}
+        S(f) & = \sum_{k = -\infty}^{+\infty} \gamma(k) \exp(-2i \pi f k)\\
+        & = \sigma_{\varepsilon}^2 \sum_{k = -\infty}^{+\infty} \sum_{j = 0}^{+ \infty} \psi_j \exp(2i \pi f j) \psi_{k+j} \exp(-2i \pi f (k+j))\\
+        & = \sigma_{\varepsilon}^2 \sum_{j = 0}^{+ \infty} \psi_j \exp(2i \pi f j) \sum_{u = 0}^{+\infty} \psi_{u} \exp(-2i \pi f u)\\
+        & = \sigma_{\varepsilon}^2|\phi(e^{-2\pi\iu f})|^2
+    \end{align*}
+    D'où le résultat demandé.
+\end{itemize}
+
+\end{solution}
+
+\newpage
+\begin{exercise}[subtitle=AR(2) process]
+Let $\{Y_t\}_{t\geq 1}$ be an AR(2) process, i.e.
+\begin{equation}
+    Y_t = \phi_1 Y_{t-1} + \phi_2 Y_{t-2} + \varepsilon_t
+\end{equation}
+with $\phi_1, \phi_2\in\mathbb{R}$.
+The associated characteristic polynomial is $\phi(z):=1-\phi_1 z - \phi_2 z^2$.
+Assume that $\phi$ has two distinct roots (possibly complex) $r_1$ and $r_2$ such that $|r_i|>1$.
+Properties on the roots of this polynomial drive the behaviour of this process.
+
+
+\begin{itemize}
+    \item Express the autocovariance coefficients $\gamma(\tau)$ using the roots $r_1$ and $r_2$.
+    \item Figure~\ref{fig:q-ar-2-corr} shows the correlograms of two different AR(2) processes. Can you tell which one has complex roots and which one has real roots?
+    \item Express the power spectrum $S(f)$ (assume the sampling frequency is 1 Hz) using $\phi(\cdot)$.
+    \item Choose $\phi_1$ and $\phi_2$ such that the characteristic polynomial has two complex conjugate roots of norm $r=1.05$ and phase $\theta=2\pi/6$. Simulate the process $\{Y_t\}_t$ (with $n=2000$) and display the signal and the periodogram (use a smooth estimator) on Figure~\ref{fig:q-ar-2}. What do you observe?
+\end{itemize}
+
+
+\begin{figure}
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+    \centerline{\includegraphics[width=\textwidth]{images/acf1.pdf}}
+    \centerline{Correlogram of the first AR(2)}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}    \centerline{\includegraphics[width=\textwidth]{images/acf2.pdf}}
+    \centerline{Correlogram of the second AR(2)}
+    \end{minipage}
+    \caption{Two AR(2) processes}\label{fig:q-ar-2-corr}
+\end{figure}
+
+
+
+\end{exercise}
+
+\begin{solution}  % ANSWER HERE
+
+    \begin{itemize}
+        \item Dans la mesure où les racines sont de module $>1$, le processus est stationnaire. En multipliant par $Y_{t-k}$, on a :
+        
+        \begin{align*}
+            Y_t Y_{t-k} & = \phi_1 Y_{t-1} T_{t-k} + \phi_2 Y_{t-2} Y_{t-k} + \varepsilon_t Y_{t-k}\\
+            \mathbb{E}(Y_t Y_{t-k}) & = \phi_1 \mathbb{E}(Y_{t-1} T_{t-k}) + \phi_2 \mathbb{E}(Y_{t-2} Y_{t-k}) + \mathbb{E}(\varepsilon_t Y_{t-k})\\
+            \mathbb{E}(Y_t Y_{t-k}) & = \phi_1 \mathbb{E}(Y_{t-1} T_{t-k}) + \phi_2 \mathbb{E}(Y_{t-2} Y_{t-k}) + \mathbb{E}(\varepsilon_t) \mathbb{E}(Y_{t-k})\\
+            \gamma(k) & = \phi_1 \gamma(k) + \phi_2 \gamma(k-2)\\
+        \end{align*}
+
+        Donc $\gamma(k)$ est une suite récurrente d'ordre 2, et son expression générale s'écrit alors : 
+
+        \begin{align*}
+            \gamma(k) & = a\dfrac{1}{r_1^k} + b\dfrac{1}{r_2^k}\\
+        \end{align*}
+        
+        On détermine les coefficients $a$ et $b$ comme vérifiant $ a + b = \gamma(0)$ et $ \dfrac{a}{r_1} + \dfrac{b}{r_2} = \gamma(1)$, d'où : 
+
+        $$ \gamma(k) = \dfrac{1}{1/r_2 - 1/r_1} \big(\dfrac{\gamma(0)/r_2 - \gamma(1)}{r_1^k} + \dfrac{\gamma(1) - \gamma(0)/r1}{r_2^k}\big)$$
+
+        \item Les oscillations du premier corrélogramme sont associées à des racines complexes tandis que le second corrélogramme à décroissance exponentielle stricte est associé à des racines réelles.
+    
+        \item On peut écrire : 
+        $$Y_t = \sum_{i=0}^{t} a_i \varepsilon_{t-i}$$
+
+        où $a_i = \sum_{j,k \geq 0, j+2k = i} \phi_1^j \phi_2^k$. Il s'agit des coefficients de la série $\sum_{i=0}^{+ \infty} (\phi_1 z + \phi_2 z^2)^i = \dfrac{1}{1-\phi_1 z - \phi_2 z^2} = \dfrac{1}{\phi(z)}$, d'où en utilisant les résultats de la question précédentes, on a : 
+
+        $$S(f) = \dfrac{\sigma_{\varepsilon}^2}{|\phi(z)|^2}$$
+        \item Nous observons que le signal présente des oscillations périodiques ce qui est confirmé par le périodogramme.
+    \end{itemize}
+
+\begin{figure}
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+    \centerline{\includegraphics[width=\textwidth]{imgs/ar_process.png}}
+    \centerline{Signal}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}    \centerline{\includegraphics[width=\textwidth]{imgs/periodogram.png}}
+    \centerline{Periodogram}
+    \end{minipage}
+    \caption{AR(2) process}\label{fig:q-ar-2}
+\end{figure}
+
+\end{solution}
+
+\newpage
+\section{Sparse coding}
+
+The modulated discrete cosine transform (MDCT) is a signal transformation often used in sound processing applications (for instance to encode a MP3 file).
+A MDCT atom $\phi_{L,k}$ is defined for a length 2L and a frequency localisation $k$ ($k=0,\dots,L-1$) by
+\begin{equation}
+\forall u=0,\dots,2L-1,\quad\phi_{L,k}[u]=w_{L}[u]\sqrt{\frac{2}{L}} \cos [ \frac{\pi}{L} \left(u+ \frac{L+1}{2}\right) (k+\frac{1}{2}) ]
+\end{equation}
+where $w_{L}$ is a modulating window given by
+\begin{equation}
+w_L[u] = \sin \left[{\frac {\pi }{2L}}\left(u+{\frac {1}{2}}\right)\right].
+\end{equation}
+
+
+\begin{exercise}[subtitle=Sparse coding with OMP]
+For the signal provided in the notebook, learn a sparse representation with MDCT atoms.
+The dictionary is defined as the concatenation of all shifted MDCDT atoms for scales $L$ in $[32, 64, 128, 256, 512, 1024]$.
+
+\begin{itemize}
+    \item For the sparse coding, implement the Orthogonal Matching Pursuit (OMP). (Use convolutions to compute the correlations coefficients.)
+    \item Display the norm of the successive residuals and the reconstructed signal with 10 atoms.
+\end{itemize}
+
+\end{exercise}
+\begin{solution}
+
+
+\begin{figure}
+    \centering
+    \begin{minipage}[t]{0.45\textwidth}
+    \centerline{\includegraphics[width=\textwidth]{imgs/norm.png}}
+    \centerline{Norms of the successive residuals}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth}    \centerline{\includegraphics[width=\textwidth]{imgs/reconstruction.png}}
+    \centerline{Reconstruction with 10 atoms}
+    \end{minipage}
+    \caption{Question 4}
+\end{figure}
+
+
+
+\end{solution}
+
+\end{document}
