@@ -1,3 +1,18 @@
+# Notebook output related
+*.vscode
+.idea/
+*.iml
+*.iws
+*.eml
+out/
+.DS_Store
+.svn
+log/*.log
+tmp/**
+node_modules/
+.sass-cache
+.DS_Store
+
 ## Core latex/pdflatex auxiliary files:
 *.aux
 *.lof
@@ -11,6 +26,7 @@
 *.cb
 *.cb2
 .*.lb
+*.xsim
 
 ## Intermediate documents:
 *.dvi
