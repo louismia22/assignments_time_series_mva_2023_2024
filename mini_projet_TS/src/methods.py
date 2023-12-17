@@ -6,11 +6,9 @@ warnings.filterwarnings("ignore")
 
 class SyntheticData:
 
-    def __init__(self, 
-                 w: int,
+    def __init__(self,
                  d: int=4) -> None:
-
-        self.w = w
+        
         self.d = d
 
     def generate_data(self):
@@ -18,8 +16,7 @@ class SyntheticData:
     
 class NoisyHenon(SyntheticData):
 
-    def __init__(self, 
-                 w: int,
+    def __init__(self,
                  b: np.array,
                  sigma: float,
                  x0: float,
@@ -29,7 +26,7 @@ class NoisyHenon(SyntheticData):
                  a: float=0,
                  d: int=4) -> None:
         
-        super().__init__(w, d)
+        super().__init__(d)
         self.b = b
         self.sigma = sigma
         self.x0 = x0
@@ -38,7 +35,8 @@ class NoisyHenon(SyntheticData):
         self.T = T
         self.a = a
 
-    def generate_data(self, indep_Gn):
+    def generate_data(self, 
+                      indep_Gn: np.array) -> (np.array, np.array):
         
         a_values, step = np.linspace(self.a, self.T, self.n, retstep=True)
         y = self.y0
@@ -51,16 +49,19 @@ class NoisyHenon(SyntheticData):
 
         return a_values, xs
     
-    def compute_wasserstein_distances(self, indep_Gn):
+    def compute_wasserstein_distances(self,
+                                      w : int,
+                                      indep_Gn: np.array,
+                                      ) -> (np.array, np.array, np.array):
 
         rips = Rips(maxdim=2)
-        m = self.n - 2*self.w + 1
+        m = self.n - 2*w + 1
         wasserstein_dists = np.zeros((m, 1))
         a_values, xs = self.generate_data(indep_Gn)
 
         for i in range(m):
-            dgm1 = rips.fit_transform(xs[i:i+self.w])
-            dgm2 = rips.fit_transform(xs[i+self.w+1:i+(2*self.w)+1])
+            dgm1 = rips.fit_transform(xs[i:i+w])
+            dgm2 = rips.fit_transform(xs[i+w+1:i+(2*w)+1])
 
             wasserstein_dists[i] = persim.wasserstein(dgm1[0], dgm2[0], matching=False)
         return a_values, xs, wasserstein_dists
