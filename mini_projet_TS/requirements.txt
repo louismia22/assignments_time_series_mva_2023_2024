@@ -1,6 +1,10 @@
+gudhi==3.8.0
 matplotlib==3.5.1
 matplotlib-inline==0.1.6
 numpy==1.22.1
+pandas==1.5.3
 persim==0.3.2
+pymannkendall==1.4.3
 ripser==0.6.4
+tqdm==4.64.1
 yfinance==0.2.28
