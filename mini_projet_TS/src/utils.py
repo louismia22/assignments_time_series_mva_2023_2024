@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+
 def compute_log_returns(df: pd.DataFrame) -> pd.DataFrame:
     """
     Given an input standardized stock price dataframe, transforms
@@ -24,67 +25,9 @@ def compute_log_returns(df: pd.DataFrame) -> pd.DataFrame:
     new_df["volume_pct_change"]=new_df["volume"].pct_change()
     return new_df
 
-def compute_bottleneck_distance_persistence_diagrams(
-    data:     pd.DataFrame,
-    diagrams: list
-) -> pd.DataFrame:
-    """
-    Computes the norm of difference between landscapes.
-    """
-    # Retrieves the dates corresponding to each diagram +1
-    index = data.index[len(data)-len(diagrams)+1:]
-    # Computes the exact bottleneck distance
-    bottleneck_exact  = lambda ds, i: gd.bottleneck_distance(ds[i-1], ds[i], 0)
-    bottleneck_approx = lambda ds, i: gd.bottleneck_distance(ds[i-1], ds[i], 0.001)
-    bexact_distances  = [bottleneck_exact(diagrams, i)
-                        for i in range(1, len(diagrams))]
-    bapprox_distances = [bottleneck_approx(diagrams, i)
-                        for i in range(1, len(diagrams))]
-    # Computes the output
-    df_exact  = pd.DataFrame(bexact_distances,
-                            index=index,
-                            columns=["exact_bottleneck_distances"])
-    df_approx = pd.DataFrame(bapprox_distances,
-                            index=index,
-                            columns=["approx_bottleneck_distances"])
-    # Plots
-    ax = df_approx.plot(figsize=(18,7),
-                lw      = 0.8,
-                color   = "orange",
-                alpha   = 0.5,
-                ylabel  = "Distance",
-                title="Approximative bottleneck distances " + \
-                "between consecutive diagrams of k=1, e=0.001")
-    ax.axvline(x         = np.where([df_exact.index=="2000-01-10"])[1][0],
-            color     = 'r',
-            linestyle = (0, (3, 5, 1, 5, 1, 5)),
-            label     = 'America Online/Time Warner merger')
-    ax.axvline(x         = np.where([df_exact.index=="2008-09-15"])[1][0],
-            color     = 'r',
-            linestyle = '--',
-            label     = 'Lehman Brothers bankruptcy')
-    ax.legend()
-    ax = df_exact.plot(figsize = (18, 7),
-                lw      = 0.8,
-                color   = "blue",
-                alpha   = 0.5,
-                ylabel  = "Distance",
-                title   = "Exact bottleneck distances between consecutive diagrams of k=1")
-    ax.axvline(x         = np.where([df_exact.index=="2000-01-10"])[1][0],
-            color     = 'r',
-            linestyle = (0, (3, 5, 1, 5, 1, 5)),
-            label     = 'America Online/Time Warner merger')
-    ax.axvline(x         = np.where([df_exact.index=="2008-09-15"])[1][0],
-            color     = 'r',
-            linestyle = '--',
-            label     = 'Lehman Brothers bankruptcy')
-    ax.legend()
-    return df_exact, df_approx
 
-def compute_norm_difference_persistence_landscapes(
-    data:       pd.DataFrame,
-    landscapes: list
-) -> pd.DataFrame:
+def compute_norm_difference_persistence_landscapes(data: pd.DataFrame,
+                                                   landscapes: list) -> pd.DataFrame:
     """
     Computes the norm of difference between landscapes.
     """
@@ -113,12 +56,11 @@ def compute_norm_difference_persistence_landscapes(
     ax.legend()
     return df
 
-def compute_persistence_diagram(
-    point_cloud:   np.ndarray,
-    rips_complex:  bool        = True,
-    print_graph:   bool        = False,
-    memory_saving: tuple       = (False, 1)
-) -> np.ndarray:
+
+def compute_persistence_diagram(point_cloud: np.ndarray,
+                                rips_complex: bool=True,
+                                print_graph: bool=False,
+                                memory_saving: tuple=(False, 1)) -> np.ndarray:
     """
     Given an input point cloud data set, computes the corresponding
     persistence diagram (only for 1-d loops as in the paper).
@@ -143,12 +85,11 @@ def compute_persistence_diagram(
     # the returned diagram comprises the birth and death of 1-loops
     return simplex
 
-def compute_persistence_diagrams(
-    data:          pd.DataFrame,
-    w:             int,
-    rips_complex:  bool          = True,
-    memory_saving: tuple         = (False, 1)
-) -> np.ndarray:
+
+def compute_persistence_diagrams(data: pd.DataFrame,
+                                 w: int,
+                                 rips_complex: bool=True,
+                                 memory_saving: tuple=(False, 1)) -> np.ndarray:
     """
     Given an input time series, computes the corresponding
     persistence diagram given a shifting window of size w.
@@ -164,15 +105,14 @@ def compute_persistence_diagrams(
         diagrams.append(diagram)
     return diagrams
 
-def compute_persistence_landscape(
-    diagram:            np.ndarray,         # diagram range
-    endpoints:          list,               # endpoints
-    homology_dimension: int         = 1,    # k dimensions
-    n_landscapes:       int         = 5,    # m landscapes
-    resolution:         int         = 1000, # n nodes
-    memory_saving:      bool        = False,
-    pbar = None
-) -> np.ndarray:
+
+def compute_persistence_landscape(diagram: np.ndarray,         # diagram range
+                                  endpoints: list,               # endpoints
+                                  homology_dimension: int=1,    # k dimensions
+                                  n_landscapes: int=5,    # m landscapes
+                                  resolution: int=1000, # n nodes
+                                  memory_saving: bool=False,
+                                  pbar=None) -> np.ndarray:
     """
     Given a persistence diagram of 1D loops of a given
     time series, computes the corresponding persistence landscape.
@@ -235,13 +175,12 @@ def compute_persistence_landscape(
 
     return computed_landscapes_at_given_resolution
 
-def compute_persistence_landscapes(
-    diagrams:           np.ndarray,         # diagram D
-    homology_dimension: int         = 1,    # k dimensions
-    n_landscapes:       int         = 5,    # m landscapes
-    resolution:         int         = 1000, # n nodes
-    memory_saving:      bool        = False
-) -> np.ndarray:
+
+def compute_persistence_landscapes(diagrams: np.ndarray,         # diagram D
+                                   homology_dimension: int=1,    # k dimensions
+                                   n_landscapes: int=5,    # m landscapes
+                                   resolution: int=1000, # n nodes
+                                   memory_saving: bool=False) -> np.ndarray:
     """
     Given a list of persistence diagrams of 1D loops of a given
     time series, computes the corresponding persistence landscapes.
@@ -274,9 +213,8 @@ def compute_persistence_landscapes(
     ]
     return landscapes
 
-def compute_persistence_landscape_norms(
-    landscapes: list
-) -> np.ndarray:
+
+def compute_persistence_landscape_norms(landscapes: list) -> np.ndarray:
     """
     Given a list/time series of persistence landscape, computes
     the corresponding normalized L1 and L2 time series
@@ -286,6 +224,7 @@ def compute_persistence_landscape_norms(
     norms_1 = norms_1/np.linalg.norm(norms_1)
     norms_2 = norms_2/np.linalg.norm(norms_2)
     return np.array([norms_1, norms_2]).T
+
 
 def format_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -301,12 +240,9 @@ def format_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     return new_df
 
 
-def plot_price_data(
-    df_list:       list,
-    legend:        list,
-    target_column: str,
-    title:         str
-) -> None:
+def plot_price_data(df: pd.DataFrame,
+                    legend: list,
+                    title: str) -> None:
     """
     Given a list of standardized stock price data, plots the
     Adjusted Close value across the whole available timeline.
@@ -314,9 +250,10 @@ def plot_price_data(
     plt.figure()
     # Fixes x-ticks interval to c. a year
     plt.gca().xaxis.set_major_locator(mdates.DayLocator(interval=365))
-    for df in df_list:
-        plt.plot(df["date"].tolist(),
-                 df[[target_column]],
+    assets = list(df.columns)
+    for asset in assets:
+        plt.plot(list(df.index),
+                 df[asset],
                  linewidth=.5)
     plt.xticks(rotation=90)
     plt.title(title)
