@@ -1,3 +1,4 @@
+ccxt==4.1.91
 gudhi==3.8.0
 matplotlib==3.5.1
 matplotlib-inline==0.1.6
