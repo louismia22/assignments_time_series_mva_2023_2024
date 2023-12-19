@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+		<title>Soutenance Time Series - MVA</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/white-contrast.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+        <style>
+            body {
+                margin: 0;
+                padding-top: 0px; /* Ajout d'une marge en haut de la page pour éviter le chevauchement */
+            }
+            .logo-container {
+                position: absolute;
+                top: 10px;
+                z-index: 9999;
+            }
+            .logo-top-left {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                width: 100px; /* Changer la largeur souhaitée */
+                height: auto; /* Cela permet de conserver le rapport hauteur/largeur de l'image */
+            }
+            .logo-top-right {
+                position: fixed;
+				z-index: 1;
+                top: 0px;
+                right: 10px;
+                width: 250px; /* Changer la largeur souhaitée */
+                height: auto; /* Cela permet de conserver le rapport hauteur/largeur de l'image */
+            }
+
+			.presentation-img {
+				max-width: 60% !important;
+			}		
+			.presentation-img2 {
+				max-width: 90% !important;
+			}
+			.presentation-img3 {
+				max-width: 35% !important;
+			}
+
+			.img-cover {
+				background-image: url(/img/thats_all_folks.svg);
+				background-repeat: no-repeat;
+				background-size: cover;
+			}
+
+			.bg-cover {
+				background-repeat: no-repeat !important;
+				background-size: 110% !important;
+				background-position: 50% 50% !important;
+			}/* Style pour la page de garde */
+			
+
+			.banner {
+				padding: 1em; /* Espacement autour du bandeau */
+				text-align: center;
+			}
+
+			.banner img {
+				max-width: 40%; /* Réduit la largeur de l'image */
+				height: auto;
+			}
+			.cover-content {
+				flex-grow: 1; /* Remplir l'espace vertical */
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.cover h1 {
+				font-size: 2.5em;
+				margin-bottom: 0.5em;
+			}
+
+			.cover h3 {
+				font-size: 1.5em;
+				margin-bottom: 0.2em;
+			}
+
+			.cover p {
+				font-size: 0.5em;
+			}
+        </style>
+	</head>
+
+	<body>
+		<div class="reveal">
+			<img src="/img/logo_ens.png" alt="Logo de la présentation" class="logo-top-right">			<div class="slides">
+				<section class="cover">
+					<div class="cover-content">
+						<h4>Topological Data Analysis of Financial Time Series : Landscapes of Crashes</h4>
+						<p><b>Louis-Marie LOVICHI</b> - <b>Benjamin DAHAN MONSONEGO</b></p>
+						<p><span style="color: red; font-weight: bold;">Machine Learning for Time Series</span></p>
+						<p>Group 49 - December 20th 2023 - 2:15 p.m.</p>
+						<img src="/img/logo_mva.jpg" alt="Pipeline" style="width: 300px">
+					</div>
+				</section>
+				<section>
+					<h3>Table of Contents</h3>
+					<ol>
+						<!-- Ajoutez autant de liens que nécessaire -->
+						<li>Introduction and contributions</a></li>
+						<li>Method</a></li>
+						<li>Data</a></li>
+						<li>Results</a></li>
+					</ol>
+				</section>
+
+
+				<section>
+					<section><h3>1. Introduction and contributions</h3>
+						<img src="/img/logo_mva.jpg" alt="Pipeline" class="presentation-img"></section>
+					<section>
+						<h3>1.1. Context</h3>
+						<ul>
+							<!-- Ajoutez autant de liens que nécessaire -->
+							<li>Use of topological data analysis</a></li>
+							<li>New features using Persistent Homology</a></li>
+							<li>Highlight potentiel Early Wearning Signal</a></li>
+						</ul></section>
+					<section>
+						<h3>1.2. Contributions</h3>
+						<ul>
+							<!-- Ajoutez autant de liens que nécessaire -->
+							<li>Implementation of the paper</a></li>
+							<li>Influence of the sliding window size</a></li>
+							<li>Apply the method to new datasets</a></li>
+						</ul></section>
+				</section>
+
+				<section>
+					<section><h3>2. Method</h3>
+					<img src="/img/logo_mva.jpg" alt="Pipeline" class="presentation-img"></section>
+					<section>
+						<h3>2.1. Background</h3>
+						<ul>
+							<!-- Ajoutez autant de liens que nécessaire -->
+							<li>Simplicial complex</a></li>
+							<li>Vietoris-Rips complex</a></li>
+						</ul>
+						<img src="/img/rips.png" alt="Description de l'image" class="presentation-img">
+					</section>
+					<section>
+						<h3>2.1. Background</h3>
+						<ul>
+							<!-- Ajoutez autant de liens que nécessaire -->
+							<li>Persistence diagram</a></li>
+							<li>Persistence landscapes</a></li>
+						</ul>
+						<img src="/img/persistence.png" alt="Description de l'image" class="presentation-img">
+					</section>
+					<section>
+						<h3>2.2. Method summary</h3>
+						<img src="/img/pipeline.png" alt="Pipeline" class="presentation-img2">
+					</section>
+				</section>
+
+				<section>
+					<section><h3>3. Data</h3>
+						<img src="/img/logo_mva.jpg" alt="Pipeline" class="presentation-img">
+					</section>
+					<section data-markdown>
+						<textarea data-template>
+							### 3.1. Synthetic Data
+							<br>
+							Noisy Hénon map:
+							<br>
+							\[
+							\begin{cases}
+								x_{n+1} & = 1 - a_n x_n^2 + by_n + \sigma W_n \sqrt{\Delta t}\\
+								y_{n+1} & = x_{n+1} + \sigma W_n \sqrt{\Delta t} \\
+								a_{n+1} & = a_n + \Delta t
+							\end{cases}
+							\]
+						</textarea>
+					</section>
+					<section>
+						<h3>3.1. Synthetic data</h3>
+						<p>Noisy Hénon map :</p>
+						<img src="/img/Henon_map.png" alt="Description de l'image" class="presentation-img2">
+					</section>
+					<section>
+						<h3>3.2. Real data</h3>
+
+						<p>Four european indices (CAC40, IBEX35, DAX, and FTSE100):</p>
+						<img src="/img/adjusted_close_price.png" alt="Pipeline" class="presentation-img">
+					</section>
+					<section>
+						<h3>3.2. Real data</h3>
+
+						<p>Cryptocurrencies (BTC, ETH, ADA, SOL):</p>
+						<img src="/img/cryptos.png" alt="Pipeline" class="presentation-img">
+					</section>
+				</section>
+
+				<section>
+					<section><h3>4. Results</h3>
+						<img src="/img/logo_mva.jpg" alt="Pipeline" class="presentation-img">
+					</section>
+					<section>
+						<h3>4.1. Results - Synthetic data</h3>
+
+						<p>Sensitivity of the Wassertein distance to the sliding window length:</p>
+						<img src="/img/w_sensitivity_Henon.png" alt="Pipeline" class="presentation-img">
+					</section>
+					<section>
+						<h3>4.1. Results - Synthetic data</h3>
+
+						<p>Persistence landscapes for Hénon
+							map:</p>
+						<img src="/img/persistence_landscapes_henon.png" alt="Pipeline" class="presentation-img">
+					</section>
+					<section>
+						<h3>4.2. Results - Real data</h3>
+
+						<p>Persistence landscapes for Covid period:</p>
+						<img src="/img/persistence_landscapes_covid.png" alt="Pipeline" class="presentation-img">
+					</section>
+				</section>
+				
+				<!--<section><h3>Conclusion</h3></section>-->
+					
+				<section data-background="url(/img/thats_all_folks.svg)" class="bg-cover">
+
+				</section>
+			</div>
+		</div>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script src="plugin/math/math.js"></script>
+		<script src="plugin/search/search.js"></script>
+		<script src="plugin/zoom/zoom.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+				slideNumber: 'h.v',
+				transition: 'convex',
+				navigateToSlide: function(index) {
+        			Reveal.slide(index);
+    			},
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX, RevealSearch, RevealZoom ]
+			});
+		</script>
+	</body>
+</html>
